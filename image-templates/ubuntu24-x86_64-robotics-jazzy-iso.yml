@@ -152,9 +152,9 @@ systemConfig:
     # ── Intel OneAPI runtime (pinned to 2025.3.x) ───────────────────
     # Listed before ros-jazzy-desktop so the resolver locks these versions
     # first, preventing transitive deps from pulling 2026.0.0.
-    - intel-oneapi-runtime-compilers_2025.3.3-30
-    - intel-oneapi-runtime-compilers-common_2025.3.3-30
-    - intel-oneapi-runtime-opencl_2025.3.3-30
+    - intel-oneapi-runtime-compilers
+    - intel-oneapi-runtime-compilers-common
+    - intel-oneapi-runtime-opencl
 
     # ── ROS 2 Jazzy Desktop (full) ──────────────────────────────────
     - ros-jazzy-desktop
@@ -178,9 +178,12 @@ systemConfig:
     - ros-jazzy-collab-slam-lze
 
     # ── Intel RealSense camera (DKMS + SDK, installed at build time) ──
-    - linux-headers-generic
+    # Keep the exact kernel headers pinned to 7.0.0-34. The floating
+    # linux-headers-generic/HWE stack drifts to 7.0.0-38 and breaks the
+    # RealSense DKMS build on this template.
+    - linux-headers-7.0.0-34-generic
     - librealsense2-dkms
-    - librealsense2_2.56.5-0~realsense.17055
+    - librealsense2
     - ros-jazzy-librealsense2
 
     # ── Firmware ────────────────────────────────────────────────────
@@ -192,8 +195,11 @@ systemConfig:
 
   kernel:
     cmdline: "console=ttyS0,115200 console=tty0 loglevel=7"
+    # Pinned to 7.0.0-34 to avoid the known DKMS incompatibility with the
+    # newer 7.0.0-38 HWE kernel in this robotics image.
     packages:
-      - linux-image-generic-hwe-24.04
+      - linux-image-7.0.0-34-generic
+      - linux-headers-7.0.0-34-generic
 
   configurations:
     # ── ROS 2 environment setup ────────────────────────────────────
@@ -208,11 +214,11 @@ systemConfig:
     # Block old FLANN 1.19.x from ECI (prefer Ubuntu's FLANN 1.9.2)
     - cmd: "printf 'Package: libflann*\\nPin: version 1.19.*\\nPin-Priority: -1\\n\\nPackage: flann*\\nPin: version 1.19.*\\nPin-Priority: -1\\n' > /etc/apt/preferences.d/eci-flann-block"
     # Pin OneAPI packages to 2025.3.* (matches setup-robotics-jazzy.sh exactly)
-    - cmd: "printf 'Package: intel-oneapi-runtime-*\\nPin: version 2025.3.*\\nPin-Priority: 1001\\n\\nPackage: intel-oneapi-compiler-*\\nPin: version 2025.3.*\\nPin-Priority: 1001\\n\\nPackage: intel-oneapi-mkl-*\\nPin: version 2025.3.*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/oneapi"
+    - cmd: "printf 'Package: intel-oneapi-runtime-*\\nPin: version 2026.1.*\\nPin-Priority: 1001\\n\\nPackage: intel-oneapi-compiler-*\\nPin: version 2026.1.*\\nPin-Priority: 1001\\n\\nPackage: intel-oneapi-mkl-*\\nPin: version 2026.1.*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/oneapi"
     # OpenVINO version pins (match setup-robotics-jazzy.sh exactly)
     - cmd: "printf 'Package: openvino-libraries-dev\\nPin: version 2025.3.0*\\nPin-Priority: 1001\\n\\nPackage: openvino\\nPin: version 2025.3.0*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-openvino-wrapper-lib\\nPin: version 2025.3.0*\\nPin-Priority: 1002\\n\\nPackage: ros-jazzy-openvino-node\\nPin: version 2025.3.0*\\nPin-Priority: 1002\\n' > /etc/apt/preferences.d/intel-openvino"
     # RealSense SDK version pin for post-deployment upgrade protection.
-    - cmd: "printf 'Package: librealsense2*\\nPin: version 2.56.5-0~realsense.17055\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-librealsense2*\\nPin: version 2.56.4*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-realsense2*\\nPin: version 4.56.4*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/librealsense"
+    #- cmd: "printf 'Package: librealsense2*\\nPin: version 2.56.5-0~realsense.17055\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-librealsense2*\\nPin: version 2.56.4*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-realsense2*\\nPin: version 4.56.4*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/librealsense"
 
     # ── debconf pre-selections for OpenVINO node ─────────────────────
     - cmd: "echo 'ros-jazzy-openvino-node openvino-node/pip-proxy select true' | debconf-set-selections"
