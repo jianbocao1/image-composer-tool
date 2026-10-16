@@ -104,7 +104,7 @@ packageRepositories:
 
   # Intel OpenVINO 2025 repository
   - codename: "ubuntu24"
-    url: "https://apt.repos.intel.com/openvino/2025"
+    url: "https://apt.repos.intel.com/openvino"
     pkey: "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB"
     component: "main"
 
@@ -124,6 +124,44 @@ systemConfig:
   name: robotics-humanoid
   description: Intel Robotics Humanoid AI Suite - Full ROS 2 Jazzy with OpenVINO, Gazebo, RealSense, and Intel GPU/NPU
 
+  additionalFiles:
+    - local: additionalfiles/ubuntu24-robotics-humanoid/10_eci_experimental
+      final: /etc/grub.d/10_eci_experimental
+    - local: additionalfiles/ubuntu24-robotics-humanoid/rt-optimization.service
+      final: /usr/share/ei_sdk/rt-optimization.service
+    - local: additionalfiles/ubuntu24-robotics-humanoid/rt-optimization.service
+      final: /etc/systemd/system/rt-optimization.service
+    - local: additionalfiles/ubuntu24-robotics-humanoid/rt_os_runtime_tuning.sh
+      final: /usr/share/ei_sdk/rt_os_runtime_tuning.sh
+    - local: additionalfiles/ubuntu24-robotics-humanoid/gpu-forcewake.service
+      final: /usr/share/ei_sdk/gpu-forcewake.service
+    - local: additionalfiles/ubuntu24-robotics-humanoid/gpu-forcewake.service
+      final: /etc/systemd/system/gpu-forcewake.service
+    - local: additionalfiles/ubuntu24-robotics-humanoid/gpu-freq-control.service
+      final: /usr/share/ei_sdk/gpu-freq-control.service
+    - local: additionalfiles/ubuntu24-robotics-humanoid/gpu-freq-control.service
+      final: /etc/systemd/system/gpu-freq-control.service
+    - local: additionalfiles/ubuntu24-robotics-humanoid/xe-freq-control.sh
+      final: /usr/share/ei_sdk/xe-freq-control.sh
+    - local: additionalfiles/ubuntu24-robotics-humanoid/linux-gpu-compute-runtime-v26.09.37435.1-ubuntu2404.tar.gz
+      final: /tmp/gpu-driver/linux-gpu-compute-runtime-v26.09.37435.1-ubuntu2404.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/linux-npu-driver-v1.32.0.20260402-23905121947-ubuntu2404.tar.gz
+      final: /tmp/npu-driver/linux-npu-driver-v1.32.0.20260402-23905121947-ubuntu2404.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/openvino-wheelhouse-openvino-2025.4.0.tar.gz
+      final: /usr/share/ei_sdk/openvino-wheelhouse-openvino-2025.4.0.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/openvino-wheelhouse-openvino-2026.1.0.tar.gz
+      final: /usr/share/ei_sdk/openvino-wheelhouse-openvino-2026.1.0.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/openvino-wheelhouse-openvino-genai-2026.1.0.0.tar.gz
+      final: /usr/share/ei_sdk/openvino-wheelhouse-openvino-genai-2026.1.0.0.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/openvino.genai-2026.1.0.0.zip
+      final: /usr/share/ei_sdk/openvino.genai-2026.1.0.0.zip
+    - local: additionalfiles/ubuntu24-robotics-humanoid/linux-intel-experimental_6.17.11-r0-0eci3.tar.gz
+      final: /usr/share/ei_sdk/kernel_sourcecode/linux-intel-experimental_6.17.11-r0-0eci3.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/linux-intel-rt-experimental_6.17.11-r0-0eci5.tar.gz
+      final: /usr/share/ei_sdk/kernel_sourcecode/linux-intel-rt-experimental_6.17.11-r0-0eci5.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/rt-tests-2.6.tar.gz
+      final: /usr/share/ei_sdk/rt-tests-2.6.tar.gz
+
   immutability:
     enabled: false
 
@@ -133,7 +171,6 @@ systemConfig:
     - ubuntu-desktop-minimal
     - systemd
     - systemd-resolved
-    - systemd-boot
     - systemd-timesyncd
     - openssh-server
     - network-manager
@@ -142,6 +179,7 @@ systemConfig:
     - wget
     - vim
     - software-properties-common
+    - bash-completion
     - gnupg
     - lsb-release
     - debconf-utils
@@ -154,16 +192,30 @@ systemConfig:
     - dpkg-dev
     - clinfo 
     - libnuma-dev
+    - build-essential
+    - libpci-dev
+    - libcap-dev
+    - gettext
+    - libncurses-dev
     - python3-pip
     - python3.12-venv
+    - customizations-grub
+    - tree
+    - tmux
+    - htop
+    - fonts-ubuntu
+    - language-pack-en
+    - language-pack-en-base
+    - language-pack-gnome-en
+    - language-pack-gnome-en-base
+    - net-tools
 
     # Boot / initramfs (required for UKI)
     - dracut-core
     - cryptsetup-bin
 
-    # ── Intel OneAPI runtime (pinned to 2025.3.x) ───────────────────
+    # ── Intel OneAPI runtime  ───────────────────
     # Listed before ros-jazzy-desktop so the resolver locks these versions
-    # first, preventing transitive deps from pulling 2026.0.0.
     - intel-oneapi-runtime-compilers
     - intel-oneapi-runtime-compilers-common
     - intel-oneapi-runtime-opencl
@@ -177,6 +229,7 @@ systemConfig:
     #- ros-jazzy-openvino-node
 
     # ── Intel GPU / Level Zero ──────────────────────────────────────
+    - libtbb12
     - libze1
     - libze-intel-gpu1
 
@@ -202,8 +255,8 @@ systemConfig:
     - linux-firmware
 
     # ── Intel NPU (Neural Processing Unit) drivers ───────────────────
-    - intel-level-zero-npu
-    - intel-driver-compiler-npu
+    #- intel-level-zero-npu
+    #- intel-driver-compiler-npu
 
   kernel:
     cmdline: "console=ttyS0,115200 console=tty0 loglevel=7"
@@ -212,12 +265,17 @@ systemConfig:
     packages:
     #  - linux-image-7.0.0-34-generic
     #  - linux-headers-7.0.0-34-generic
+      - linux-intel-experimental
       - linux-intel-rt-experimental
 
   configurations:
     # ── ROS 2 environment setup ────────────────────────────────────
     - cmd: "echo 'source /opt/ros/jazzy/setup.bash' >> /etc/bash.bashrc"
     - cmd: "echo 'export ROS_DOMAIN_ID=42' >> /etc/bash.bashrc"
+
+    # ── Locale configuration (en_US.UTF-8) ─────────────────────────
+    - cmd: "locale-gen en_US en_US.UTF-8"
+    - cmd: "update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8"
 
     # ── Post-deployment APT version pinning (protects against bad upgrades) ──
     # Note: Origin-based priority pins (ECI=1000, AMR=1001) are auto-generated
@@ -226,23 +284,53 @@ systemConfig:
     #
     # Block old FLANN 1.19.x from ECI (prefer Ubuntu's FLANN 1.9.2)
     - cmd: "printf 'Package: libflann*\\nPin: version 1.19.*\\nPin-Priority: -1\\n\\nPackage: flann*\\nPin: version 1.19.*\\nPin-Priority: -1\\n' > /etc/apt/preferences.d/eci-flann-block"
-    # Pin OneAPI packages to 2025.3.* (matches setup-robotics-jazzy.sh exactly)
+    # Pin OneAPI packages (matches setup-robotics-jazzy.sh exactly)
     - cmd: "printf 'Package: intel-oneapi-runtime-*\\nPin: version 2026.1.*\\nPin-Priority: 1001\\n\\nPackage: intel-oneapi-compiler-*\\nPin: version 2026.1.*\\nPin-Priority: 1001\\n\\nPackage: intel-oneapi-mkl-*\\nPin: version 2026.1.*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/oneapi"
     # OpenVINO version pins (match setup-robotics-jazzy.sh exactly)
     - cmd: "printf 'Package: openvino-libraries-dev\\nPin: version 2025.3.0*\\nPin-Priority: 1001\\n\\nPackage: openvino\\nPin: version 2025.3.0*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-openvino-wrapper-lib\\nPin: version 2025.3.0*\\nPin-Priority: 1002\\n\\nPackage: ros-jazzy-openvino-node\\nPin: version 2025.3.0*\\nPin-Priority: 1002\\n' > /etc/apt/preferences.d/intel-openvino"
     # RealSense SDK version pin for post-deployment upgrade protection.
     #- cmd: "printf 'Package: librealsense2*\\nPin: version 2.56.5-0~realsense.17055\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-librealsense2*\\nPin: version 2.56.4*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-realsense2*\\nPin: version 4.56.4*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/librealsense"
 
+    # ── Additional Ubuntu repository support ───────────────────────
+    - cmd: "add-apt-repository -y universe"
+
+    # ── Remove systemd-boot on this GRUB-based image ───────────────
+    # systemd-boot is installed transitively on some Ubuntu builds and leaves
+    # /boot/efi/loader/random-seed behind, which triggers ESP security warnings.
+    - cmd: "printf 'Package: systemd-boot systemd-boot-efi\nPin: release *\nPin-Priority: -1\n' > /etc/apt/preferences.d/no-systemd-boot"
+    - cmd: "dpkg --purge --force-all systemd-boot systemd-boot-efi 2>/dev/null || true"
+
+    # ── Intel GPU runtime install (offline bundle) ──────────────────
+    - cmd: "mkdir -p /tmp/gpu-driver"
+    - cmd: "cd /tmp/gpu-driver && tar -xzf linux-gpu-compute-runtime-v26.09.37435.1-ubuntu2404.tar.gz --strip-components=1"
+    - cmd: "cd /tmp/gpu-driver/linux-gpu-compute-runtime-v26.09.37435.1-ubuntu2404 && find . -maxdepth 1 -type f -name '*.deb' -print0 | xargs -0 dpkg -i"
+    - cmd: "apt-get install -y --fix-broken -o Dpkg::Options::=\"--force-overwrite\" || true"
+    - cmd: "rm -rf /tmp/gpu-driver"
+
+    # ── Kernel source checkout for Intel experimental kernels ───────
+    - cmd: "printf 'deb-src https://eci.intel.com/repos/noble isar main\\n' > /etc/apt/sources.list.d/eci-source.list"
+
     # ── debconf pre-selections for OpenVINO node ─────────────────────
-    - cmd: "echo 'ros-jazzy-openvino-node openvino-node/pip-proxy select true' | debconf-set-selections"
-    - cmd: "echo 'ros-jazzy-openvino-node openvino-node/models select true' | debconf-set-selections"
+    #- cmd: "echo 'ros-jazzy-openvino-node openvino-node/pip-proxy select true' | debconf-set-selections"
+    #- cmd: "echo 'ros-jazzy-openvino-node openvino-node/models select true' | debconf-set-selections"
 
-    # ── Intel NPU udev rules (render group access to /dev/accel/*) ──
-    - cmd: "printf 'SUBSYSTEM==\"accel\", KERNEL==\"accel*\", GROUP=\"render\", MODE=\"0660\"\\n' > /etc/udev/rules.d/10-intel-vpu.rules"
+    # ── Intel NPU driver install (offline bundle) ───────────────────
+    - cmd: "dpkg --purge --force-remove-reinstreq intel-driver-compiler-npu intel-fw-npu intel-level-zero-npu intel-level-zero-npu-dbgsym 2>/dev/null || true"
+    - cmd: "mkdir -p /tmp/npu-driver"
+    - cmd: "cd /tmp/npu-driver && tar -xf linux-npu-driver-v1.32.0.20260402-23905121947-ubuntu2404.tar.gz"
+    - cmd: "find /tmp/npu-driver -name '*.deb' -print0 | xargs -0 dpkg -i"
 
-    # ── Enable required services ────────────────────────────────────
-    - cmd: "systemctl enable NetworkManager"
-    - cmd: "systemctl enable ssh"
+    # ── GRUB customization ─────────────────────────────────────────
+    - cmd: "chmod 0755 /etc/grub.d/10_eci_experimental"
+    #- cmd: "update-grub"
 
     # ── Set hostname ────────────────────────────────────────────────
     - cmd: "echo 'robotics-humanoid' > /etc/hostname"
+
+  provisioning:
+    scripts:
+      - name: setup-user-home
+        local: additionalfiles/ubuntu24-robotics-humanoid/10-setup-user-home.sh
+        final: /usr/local/sbin/setup-user-home.sh
+        stage: first-boot
+        order: 10

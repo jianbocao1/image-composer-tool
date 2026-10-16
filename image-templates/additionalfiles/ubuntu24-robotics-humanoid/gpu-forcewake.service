@@ -1,0 +1,19 @@
+[Unit]
+Description=GPU forcewake control service
+DefaultDependencies=no
+After=network.target multi-user.target graphical.target
+# Before=shutdown.target reboot.target halt.target
+# Conflicts=shutdown.target reboot.target halt.target
+
+[Service]
+Type=simple
+ExecCondition=/bin/bash -c 'test "$(cat /sys/class/drm/card0/device/uevent | grep DRIVER | cut -d= -f2)" = "xe"'
+ExecStart=/bin/bash -c 'exec 3< /sys/kernel/debug/dri/0/forcewake_all; sleep infinity'
+ExecStop=/bin/bash -c 'exec 3<&-'
+Restart=no
+RemainAfterExit=yes
+KillMode=process
+# TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Real-Time optimization OneShot systemd boot service
+DefaultDependencies=no
+After=network.target multi-user.target graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/ei_sdk/rt_os_runtime_tuning.sh
+ExecStartPost=/usr/bin/echo "Real-Time optimization service has started successfully."
+ExecStop=-/bin/systemctl disable rt-optimization.service
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

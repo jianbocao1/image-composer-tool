@@ -1,0 +1,19 @@
+[Unit]
+Description=GPU Frequency Control Service
+DefaultDependencies=no
+After=network.target multi-user.target graphical.target
+# Before=shutdown.target reboot.target halt.target
+# Conflicts=shutdown.target reboot.target halt.target
+ConditionPathExists=/sys/class/drm/card0/device/tile0/gt0/freq0/min_freq
+ConditionPathExists=/sys/class/drm/card0/device/tile0/gt0/freq0/max_freq
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/ei_sdk/xe-freq-control.sh start
+ExecStartPost=/usr/bin/echo "GPU Frequency Control Service has started successfully."
+ExecStop=/usr/share/ei_sdk/xe-freq-control.sh stop
+RemainAfterExit=yes
+# TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target
