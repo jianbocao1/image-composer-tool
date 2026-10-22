@@ -161,6 +161,8 @@ systemConfig:
       final: /usr/share/ei_sdk/kernel_sourcecode/linux-intel-rt-experimental_6.17.11-r0-0eci5.tar.gz
     - local: additionalfiles/ubuntu24-robotics-humanoid/rt-tests-2.6.tar.gz
       final: /usr/share/ei_sdk/rt-tests-2.6.tar.gz
+    - local: additionalfiles/ubuntu24-robotics-humanoid/xe-firmware-ptl-bmg.tar.gz
+      final: /usr/share/ei_sdk/xe-firmware-ptl-bmg.tar.gz
 
   immutability:
     enabled: false
@@ -209,6 +211,8 @@ systemConfig:
     - language-pack-gnome-en
     - language-pack-gnome-en-base
     - net-tools
+    - rtkit
+    - ibus
 
     # Boot / initramfs (required for UKI)
     - dracut-core
@@ -232,6 +236,10 @@ systemConfig:
     - libtbb12
     - libze1
     - libze-intel-gpu1
+    - mesa-va-drivers
+    - mesa-vdpau-drivers
+    - mesa-vulkan-drivers
+    - intel-media-va-driver-non-free
 
     # ── Gazebo Harmonic physics simulator ───────────────────────────
     - gz-harmonic
@@ -277,6 +285,9 @@ systemConfig:
     - cmd: "locale-gen en_US en_US.UTF-8"
     - cmd: "update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8"
 
+    # ── GDM Wayland override ────────────────────────────────────────
+    - cmd: "sed -i 's/#WaylandEnable=/WaylandEnable=/g' /etc/gdm3/custom.conf"
+
     # ── Post-deployment APT version pinning (protects against bad upgrades) ──
     # Note: Origin-based priority pins (ECI=1000, AMR=1001) are auto-generated
     # by the provider from packageRepositories.priority fields.
@@ -289,7 +300,7 @@ systemConfig:
     # OpenVINO version pins (match setup-robotics-jazzy.sh exactly)
     - cmd: "printf 'Package: openvino-libraries-dev\\nPin: version 2025.3.0*\\nPin-Priority: 1001\\n\\nPackage: openvino\\nPin: version 2025.3.0*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-openvino-wrapper-lib\\nPin: version 2025.3.0*\\nPin-Priority: 1002\\n\\nPackage: ros-jazzy-openvino-node\\nPin: version 2025.3.0*\\nPin-Priority: 1002\\n' > /etc/apt/preferences.d/intel-openvino"
     # RealSense SDK version pin for post-deployment upgrade protection.
-    #- cmd: "printf 'Package: librealsense2*\\nPin: version 2.56.5-0~realsense.17055\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-librealsense2*\\nPin: version 2.56.4*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-realsense2*\\nPin: version 4.56.4*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/librealsense"
+    # - cmd: "printf 'Package: librealsense2*\\nPin: version 2.56.5-0~realsense.17055\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-librealsense2*\\nPin: version 2.56.4*\\nPin-Priority: 1001\\n\\nPackage: ros-jazzy-realsense2*\\nPin: version 4.56.4*\\nPin-Priority: 1001\\n' > /etc/apt/preferences.d/librealsense"
 
     # ── Additional Ubuntu repository support ───────────────────────
     - cmd: "add-apt-repository -y universe"
@@ -311,8 +322,8 @@ systemConfig:
     - cmd: "printf 'deb-src https://eci.intel.com/repos/noble isar main\\n' > /etc/apt/sources.list.d/eci-source.list"
 
     # ── debconf pre-selections for OpenVINO node ─────────────────────
-    #- cmd: "echo 'ros-jazzy-openvino-node openvino-node/pip-proxy select true' | debconf-set-selections"
-    #- cmd: "echo 'ros-jazzy-openvino-node openvino-node/models select true' | debconf-set-selections"
+    # - cmd: "echo 'ros-jazzy-openvino-node openvino-node/pip-proxy select true' | debconf-set-selections"
+    # - cmd: "echo 'ros-jazzy-openvino-node openvino-node/models select true' | debconf-set-selections"
 
     # ── Intel NPU driver install (offline bundle) ───────────────────
     - cmd: "dpkg --purge --force-remove-reinstreq intel-driver-compiler-npu intel-fw-npu intel-level-zero-npu intel-level-zero-npu-dbgsym 2>/dev/null || true"
@@ -320,9 +331,15 @@ systemConfig:
     - cmd: "cd /tmp/npu-driver && tar -xf linux-npu-driver-v1.32.0.20260402-23905121947-ubuntu2404.tar.gz"
     - cmd: "find /tmp/npu-driver -name '*.deb' -print0 | xargs -0 dpkg -i"
 
+    # ── Intel Xe firmware refresh ───────────────────────────────────
+    - cmd: "mkdir -p /lib/firmware/xe"
+    - cmd: "rm -f /lib/firmware/xe/ptl_gsc_1.bin.zst /lib/firmware/xe/ptl_guc_70.bin.zst /lib/firmware/xe/ptl_huc.bin.zst /lib/firmware/xe/bmg_guc_70.bin.zst /lib/firmware/xe/bmg_huc.bin.zst"
+    - cmd: "tar -xzf /usr/share/ei_sdk/xe-firmware-ptl-bmg.tar.gz -C /lib/firmware/xe"
+    - cmd: "for kernel in /boot/vmlinuz-*; do version=\"${kernel#/boot/vmlinuz-}\"; update-initramfs -u -k \"$version\"; done"
+
     # ── GRUB customization ─────────────────────────────────────────
     - cmd: "chmod 0755 /etc/grub.d/10_eci_experimental"
-    #- cmd: "update-grub"
+    # - cmd: "update-grub"
 
     # ── Set hostname ────────────────────────────────────────────────
     - cmd: "echo 'robotics-humanoid' > /etc/hostname"

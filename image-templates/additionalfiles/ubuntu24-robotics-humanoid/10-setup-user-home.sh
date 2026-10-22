@@ -28,7 +28,7 @@ fi
 
 mkdir -p "$SDK_DIR" "$USER_HOME" "$USER_HOME/kernel_sourcecode"
 
-# Copy offline SDK archives into the configured user home.
+# Copy offline SDK assets into the configured user home before local installs.
 for file in \
     "openvino-wheelhouse-openvino-2025.4.0.tar.gz" \
     "openvino-wheelhouse-openvino-2026.1.0.tar.gz" \
