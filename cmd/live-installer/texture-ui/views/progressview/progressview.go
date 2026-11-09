@@ -153,7 +153,7 @@ func (pv *ProgressView) startInstallation() {
 	wg.Add(2)
 
 	go pv.monitorProgress(progress, wg)
-	go pv.monitorStatus(progress, status, wg)
+	go pv.monitorStatus(status, wg)
 
 	pv.performInstallation(progress, status)
 
@@ -175,26 +175,29 @@ func (pv *ProgressView) monitorProgress(progress chan int, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func (pv *ProgressView) monitorStatus(progress chan int, status chan string, wg *sync.WaitGroup) {
+// monitorStatus updates the progress bar directly rather than through the
+// progress channel: the installer closes that channel when it returns, which
+// can happen while the last status line is still being processed here.
+func (pv *ProgressView) monitorStatus(status chan string, wg *sync.WaitGroup) {
 	for statusUpdate := range status {
 		if strings.Contains(statusUpdate, "provider initialized") {
-			progress <- 10
+			pv.progressBar.SetProgress(10)
 		} else if strings.Contains(statusUpdate, "merged user and default configurations") {
-			progress <- 20
+			pv.progressBar.SetProgress(20)
 		} else if strings.Contains(statusUpdate, "Building image") {
-			progress <- 30
+			pv.progressBar.SetProgress(30)
 		} else if strings.Contains(statusUpdate, "Creating partition") {
-			progress <- 40
+			pv.progressBar.SetProgress(40)
 		} else if strings.Contains(statusUpdate, "Installing OS for image") {
-			progress <- 50
+			pv.progressBar.SetProgress(50)
 		} else if strings.Contains(statusUpdate, "Image system configuration") {
-			progress <- 70
+			pv.progressBar.SetProgress(70)
 		} else if strings.Contains(statusUpdate, "Installing bootloader") {
-			progress <- 80
+			pv.progressBar.SetProgress(80)
 		} else if strings.Contains(statusUpdate, "Image installation post-processing") {
-			progress <- 90
+			pv.progressBar.SetProgress(90)
 		} else if strings.Contains(statusUpdate, "OS installation completed") {
-			progress <- 100
+			pv.progressBar.SetProgress(100)
 		}
 		pv.progressBar.SetStatus(statusUpdate)
 		fmt.Fprintf(pv.logText, "%s", statusUpdate)

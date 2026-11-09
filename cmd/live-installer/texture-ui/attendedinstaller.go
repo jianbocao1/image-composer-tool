@@ -125,6 +125,21 @@ func (ai *AttendedInstaller) Run() (template *config.ImageTemplate, installation
 		logger.ReplaceStderrWriter(originalStderrWriter)
 	}()
 
+	// Code run by the installation (progress bars, fmt.Println, ...) writes to
+	// os.Stdout/os.Stderr directly. tcell draws through its own /dev/tty handle,
+	// so those writes land on the same terminal at the cursor position, scroll
+	// it, and leave tview's cell diff out of sync with what is on screen.
+	if devNull, openErr := os.OpenFile(os.DevNull, os.O_WRONLY, 0); openErr == nil {
+		origStdout, origStderr := os.Stdout, os.Stderr
+		os.Stdout, os.Stderr = devNull, devNull
+		defer func() {
+			os.Stdout, os.Stderr = origStdout, origStderr
+			devNull.Close()
+		}()
+	} else {
+		log.Warnf("Failed to open %s, console output may corrupt the UI: %v", os.DevNull, openErr)
+	}
+
 	err = ai.app.SetRoot(ai.grid, true).Run()
 	if err != nil {
 		return
@@ -403,8 +418,10 @@ func (ai *AttendedInstaller) installationWrapper(progress chan int, status chan 
 	ai.installationError = ai.installationFunc(ai.template, ai.configDir, ai.localRepo)
 	ai.installationTime = time.Since(startTime)
 
-	// On error, gracefully stop the installation
-	if ai.installationError != nil {
+	// On success, send completion signal; on error, gracefully stop
+	if ai.installationError == nil {
+		log.Infof("OS installation completed")
+	} else {
 		ai.app.Stop()
 	}
 }
