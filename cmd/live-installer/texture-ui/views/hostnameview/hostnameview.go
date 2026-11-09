@@ -77,7 +77,7 @@ func (hv *HostNameView) Initialize(backButtonText string, template *config.Image
 	hv.navBar = navigationbar.NewNavigationBar().
 		AddButton(backButtonText, previousPage).
 		AddButton(uitext.ButtonNext, func() {
-			enteredHostname := hv.nameField.GetText()
+			enteredHostname := normalizeHostnameForTemplate(template, hv.nameField.GetText())
 
 			err := validateFQDN(enteredHostname)
 			if err == nil {
@@ -142,6 +142,43 @@ func (hv *HostNameView) Primitive() tview.Primitive {
 
 // OnShow gets called when the view is shown to the user
 func (hv *HostNameView) OnShow() {
+}
+
+func normalizeHostnameForTemplate(template *config.ImageTemplate, rawHostname string) string {
+	hostname := strings.TrimSpace(rawHostname)
+	if hostname == "" {
+		hostname = defaultHostName
+	}
+
+	if !isRoboticsTemplate(template) {
+		return hostname
+	}
+
+	if strings.HasPrefix(hostname, "intel-robotics-") {
+		return hostname
+	}
+
+	return "intel-robotics-" + hostname
+}
+
+func isRoboticsTemplate(template *config.ImageTemplate) bool {
+	if template == nil {
+		return false
+	}
+
+	checks := []string{
+		template.Image.Name,
+		template.SystemConfig.Name,
+		template.Target.Dist,
+	}
+
+	for _, value := range checks {
+		if strings.Contains(strings.ToLower(value), "robotics-humanoid") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func validFQDNCharacter(r rune, isFirstRune bool) bool {
