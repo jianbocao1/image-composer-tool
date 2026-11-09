@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Intel Embodied Intelligence SDK
+# Robotics AI Suite
 # Copyright (c) Intel Corporation, 2026
-# v2026.1
+# v2026.2
 #
 
 MIN_FREQ_PATH="/sys/class/drm/card0/device/tile0/gt0/freq0/min_freq"

@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Robotics AI Suite
+# Copyright (c) Intel Corporation, 2026
+# v2026.2
+#
+
 set -euo pipefail
 
 SDK_DIR="/usr/share/ei_sdk"
@@ -28,9 +34,14 @@ fi
 
 mkdir -p "$SDK_DIR" "$USER_HOME" "$USER_HOME/kernel_sourcecode"
 
+# Copy the bundled Demo content from the SDK into the user's home for local use.
+if [[ -d "$SDK_DIR/Demo" ]]; then
+    rm -rf "$USER_HOME/Demo"
+    cp -r "$SDK_DIR/Demo" "$USER_HOME/"
+fi
+
 # Copy offline SDK assets into the configured user home before local installs.
 for file in \
-    "openvino-wheelhouse-openvino-2025.4.0.tar.gz" \
     "openvino-wheelhouse-openvino-2026.1.0.tar.gz" \
     "openvino-wheelhouse-openvino-genai-2026.1.0.0.tar.gz" \
     "openvino.genai-2026.1.0.0.zip" \
@@ -72,11 +83,6 @@ systemctl start gpu-forcewake.service || true
 systemctl start gpu-freq-control.service || true
 
 # OpenVINO Python environments under the selected user home.
-rm -rf "$USER_HOME/openvino_env" && python3 -m venv "$USER_HOME/openvino_env"
-tar -xzf "$USER_HOME/openvino-wheelhouse-openvino-2025.4.0.tar.gz" -C "$USER_HOME"
-"$USER_HOME/openvino_env/bin/python" -m pip install --no-index --find-links "$USER_HOME/openvino-wheelhouse-openvino-2025.4.0" --upgrade pip setuptools wheel
-"$USER_HOME/openvino_env/bin/pip" install --no-index --find-links "$USER_HOME/openvino-wheelhouse-openvino-2025.4.0" openvino==2025.4.0
-
 rm -rf "$USER_HOME/openvino_2026.1_env" && python3 -m venv "$USER_HOME/openvino_2026.1_env"
 tar -xzf "$USER_HOME/openvino-wheelhouse-openvino-2026.1.0.tar.gz" -C "$USER_HOME"
 "$USER_HOME/openvino_2026.1_env/bin/python" -m pip install --no-index --find-links "$USER_HOME/openvino-wheelhouse-openvino-2026.1.0" --upgrade pip setuptools wheel
@@ -131,13 +137,11 @@ fi
 # once installation has completed, while keeping the Python environments and
 # generated projects that the user actually needs.
 rm -f \
-    "$USER_HOME/openvino-wheelhouse-openvino-2025.4.0.tar.gz" \
     "$USER_HOME/openvino-wheelhouse-openvino-2026.1.0.tar.gz" \
     "$USER_HOME/openvino-wheelhouse-openvino-genai-2026.1.0.0.tar.gz" \
     "$USER_HOME/openvino.genai-2026.1.0.0.zip"
 
 rm -rf \
-    "$USER_HOME/openvino-wheelhouse-openvino-2025.4.0" \
     "$USER_HOME/openvino-wheelhouse-openvino-2026.1.0" \
     "$USER_HOME/openvino-wheelhouse-openvino-genai-2026.1.0.0"
 
