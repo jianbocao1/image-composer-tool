@@ -69,7 +69,7 @@ func NewNavigationBar() *NavigationBar {
 		backgroundColor:          tview.Styles.PrimitiveBackgroundColor,
 		backgroundColorActivated: tview.Styles.GraphicsColor,
 		labelColor:               tview.Styles.PrimaryTextColor,
-		labelColorActivated:      tview.Styles.InverseTextColor,
+		labelColorActivated:      tcell.ColorGreen,
 	}
 }
 
