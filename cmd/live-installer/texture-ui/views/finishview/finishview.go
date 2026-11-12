@@ -148,6 +148,9 @@ func (fv *FinishView) OnShow() {
 
 func (fv *FinishView) updateTextSize() {
 	textWidth, textHeight := uiutils.MinTextViewWithNoWrapSize(fv.text)
+	// The helper reserves only one row of padding, but the text view has
+	// padding on both top and bottom, which would leave no row for the text.
+	textHeight += defaultPadding
 	centeredText := uiutils.Center(textWidth, textHeight, fv.text)
 
 	fv.flex.
