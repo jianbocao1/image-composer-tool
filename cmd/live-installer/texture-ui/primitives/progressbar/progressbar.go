@@ -4,6 +4,8 @@
 package progressbar
 
 import (
+	"strings"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -108,5 +110,13 @@ func (p *ProgressBar) Draw(screen tcell.Screen) {
 		}
 
 		tview.Print(screen, toPrint, i, y, len(toPrint), textAlign, p.fillColor)
+	}
+
+	status := strings.TrimSpace(p.status)
+	if idx := strings.IndexByte(status, '\n'); idx >= 0 {
+		status = strings.TrimSpace(status[:idx])
+	}
+	if status != "" {
+		tview.Print(screen, tview.Escape(status), x, y+statusYOffset, width, textAlign, p.labelColor)
 	}
 }
